@@ -1,0 +1,3 @@
+/home/jc/gitEdgefollow/jps/build/CMakeFiles/edit_cache.dir
+/home/jc/gitEdgefollow/jps/build/CMakeFiles/rebuild_cache.dir
+/home/jc/gitEdgefollow/jps/build/CMakeFiles/jps.dir

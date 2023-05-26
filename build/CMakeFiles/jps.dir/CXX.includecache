@@ -1,0 +1,22 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/jc/gitEdgefollow/jps/jps.cpp
+iostream
+-
+stdio.h
+-
+string
+-
+list
+-
+vector
+-
+cmath
+-
+
