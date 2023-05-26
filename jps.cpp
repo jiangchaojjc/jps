@@ -152,15 +152,15 @@ std::list<Point *> GetNeighbors(Point *point)
         if (xDirection != 0 && yDirection != 0)
         {
             // 如果是斜着走，下一步还是斜着或者向着前一布运行方向的大体方向
-            bool neighbourForward = IsWalkable(point->X, point->Y + yDirection);
-            bool neighbourRight = IsWalkable(point->X + xDirection, point->Y);
-            bool neighbourLeft = IsWalkable(point->X - xDirection, point->Y);
-            bool neighbourBack = IsWalkable(point->X, point->Y - yDirection);
-            if (neighbourForward)
+            bool neighbourForward = IsWalkable(point->X, point->Y + yDirection); // 下
+            bool neighbourRight = IsWalkable(point->X + xDirection, point->Y);   // 右
+            bool neighbourLeft = IsWalkable(point->X - xDirection, point->Y);    // 左
+            bool neighbourBack = IsWalkable(point->X, point->Y - yDirection);    // 上
+            if (neighbourForward)                                                // 下
             {
                 points.push_back(new Point(point->X, point->Y + yDirection));
             }
-            if (neighbourRight)
+            if (neighbourRight) // 右
             {
                 points.push_back(new Point(point->X + xDirection, point->Y));
             }
@@ -261,7 +261,7 @@ Point *findPath(Point &startPoint, Point &endPoint)
     while (!openList.empty())
     {
         auto curPoint = getLeastFpoint(); // �ҵ�Fֵ��С�ĵ�
-        cout << "cx : " << curPoint->X << "     cy : " << curPoint->Y << endl;
+        cout << "cx : " << curPoint->X << "     y : " << curPoint->Y << endl;
         openList.remove(curPoint);     // �ӿ����б���ɾ��
         closeList.push_back(curPoint); // �ŵ��ر��б�
         // 1,�ҵ���ǰ��Χ�˸����п���ͨ���ĸ���
@@ -271,8 +271,8 @@ Point *findPath(Point &startPoint, Point &endPoint)
         {
             if (curPoint->ParentPoint != NULL)
             {
-                xDirection = Clamp(curPoint->X - curPoint->ParentPoint->X, -1, 1);
-                yDirection = Clamp(curPoint->Y - curPoint->ParentPoint->Y, -1, 1);
+                xDirection = Clamp(target->X - curPoint->X, -1, 1);
+                yDirection = Clamp(target->Y - curPoint->Y, -1, 1);
             }
             else
             {
@@ -358,8 +358,8 @@ int main(int argc, char *argv[])
         std::cout << std::endl;
     };
 
-    Point start(6, 10);
-    Point end(1, 1);
+    Point start(1, 1);
+    Point end(6, 10);
 
     std::list<Point *> path = GetPath(start, end);
 
