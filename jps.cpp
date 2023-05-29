@@ -74,20 +74,21 @@ Point *Jump(int curPosx, int curPosY, int xDirection, int yDirection, int depth,
         return NULL;
     }
 
-    // CallSearch(curPosx, curPosY);
-    // �ݹ������� ||  �������յ�
+    // CallSearch(curPosx, curPosY); //搜索到这的步长，包括没有走的邻居点，看效率的
+    // 到达目标点或者到达遍历深度
     if (depth == 0 || (end.X == curPosx && end.Y == curPosY))
         return new Point(curPosx, curPosY);
 
     // �Խ���
     if (xDirection != 0 && yDirection != 0)
     {
+        // 右上行，上不行 ; 左下行，左不行。斜着走的情况，与斜着的方向夹角为90度的方向能走，但是与斜着的方向135度的方向不能走，那么当前点就是跳点，找到跳点就返回
         if ((IsWalkable(curPosx + xDirection, curPosY - yDirection) && !IsWalkable(curPosx, curPosY - yDirection)) || (IsWalkable(curPosx - xDirection, curPosY + yDirection) &&
                                                                                                                        !IsWalkable(curPosx - xDirection, curPosY)))
         {
             return new Point(curPosx, curPosY);
         }
-        // ����ݹ�Ѱ��ǿ���ھ�
+        //
         if (Jump(curPosx + xDirection, curPosY, xDirection, 0, depth - 1, end) != NULL)
         {
             return new Point(curPosx, curPosY);
@@ -99,22 +100,24 @@ Point *Jump(int curPosx, int curPosY, int xDirection, int yDirection, int depth,
             return new Point(curPosx, curPosY);
         }
     }
-    else if (xDirection != 0)
+    // 取跳点时时，如有左右两边不能，但是与当前方向斜着方向能走，那么斜着的方向就是跳点
+    else if (xDirection != 0) // 垂直方向不能走，水平方向走
     {
-        // ����
+        // 右下能走，下不能走， 右上能走，上不能走
         if ((IsWalkable(curPosx + xDirection, curPosY + 1) && !IsWalkable(curPosx, curPosY + 1)) || (IsWalkable(curPosx + xDirection, curPosY - 1) && !IsWalkable(curPosx, curPosY - 1)))
         {
             return new Point(curPosx, curPosY);
         }
     }
-    else if (yDirection != 0)
+    else if (yDirection != 0) // 垂直方向走
     {
-        // ����
+        // 右下能走，右不能走，左下能走，左不能走
         if ((IsWalkable(curPosx + 1, curPosY + yDirection) && !IsWalkable(curPosx + 1, curPosY)) || (IsWalkable(curPosx - 1, curPosY + yDirection) && !IsWalkable(curPosx - 1, curPosY)))
         {
             return new Point(curPosx, curPosY);
         }
     }
+    // 如果斜着行走，斜着行走也会走水平方向和垂直方向的跳点，寻找方式按上面的一样，找到之后返回找到的条点给初始调用的地方。
     return Jump(curPosx + xDirection, curPosY + yDirection, xDirection, yDirection, depth - 1, end);
 }
 
@@ -126,7 +129,7 @@ std::list<Point *> GetNeighbors(Point *point)
     {
         first = 1;
         // ��ȡ�˵���ھ�
-        // �����parent��ΪNULL�������ھӷ��ϰ�����롣
+        // 第一步的时候，四个方向都去找
 
         for (int x = -1; x <= 1; x++)
         {
@@ -146,7 +149,7 @@ std::list<Point *> GetNeighbors(Point *point)
     else
     {
         Point *parent = point->ParentPoint;
-        // 判断前一步是斜着走还是直线走的，如果是直线走的话，yDirection  xDirection不同是为0
+        // 判断前一步是斜着走还是直线走的，如果是直线走的话，yDirection  xDirection不同时为0
         int xDirection = Clamp(point->X - parent->X, -1, 1);
         int yDirection = Clamp(point->Y - parent->Y, -1, 1);
         if (xDirection != 0 && yDirection != 0)
@@ -156,19 +159,23 @@ std::list<Point *> GetNeighbors(Point *point)
             bool neighbourRight = IsWalkable(point->X + xDirection, point->Y);   // 右
             bool neighbourLeft = IsWalkable(point->X - xDirection, point->Y);    // 左
             bool neighbourBack = IsWalkable(point->X, point->Y - yDirection);    // 上
-            if (neighbourForward)                                                // 下
+
+            // 1.如果前进的方向，可以斜向，如果斜向的方向周围45度的方向能走，那么周围45方向也是邻居点。
+            // 2.从斜向方向的周围45度再往外扩90，如果该方向不能走，但是从斜向方向周围45度再往外扩45度能走，那么该角度方向也是邻居点。
+            // 3.不可能出现只有某个方向为负xDirection或者只有负yDirection
+            if (neighbourForward) // 下
             {
-                points.push_back(new Point(point->X, point->Y + yDirection));
+                points.push_back(new Point(point->X, point->Y + yDirection)); // 取下
             }
-            if (neighbourRight) // 右
+            if (neighbourRight) // 取右
             {
                 points.push_back(new Point(point->X + xDirection, point->Y));
             }
-            if ((neighbourForward || neighbourRight) && IsWalkable(point->X + xDirection, point->Y + yDirection))
+            if ((neighbourForward || neighbourRight) && IsWalkable(point->X + xDirection, point->Y + yDirection)) // 右行或下行并且右下行，取右下
             {
                 points.push_back(new Point(point->X + xDirection, point->Y + yDirection));
             }
-            // ǿ���ھӵĴ���
+            // 左边不行，下边行，左下也行，取左下
             if (!neighbourLeft && neighbourForward)
             {
                 if (IsWalkable(point->X - xDirection, point->Y + yDirection))
@@ -176,6 +183,7 @@ std::list<Point *> GetNeighbors(Point *point)
                     points.push_back(new Point(point->X - xDirection, point->Y + yDirection));
                 }
             }
+            // 上不行，右边行，右上行，取值右上
             if (!neighbourBack && neighbourRight)
             {
                 if (IsWalkable(point->X + xDirection, point->Y - yDirection))
@@ -184,36 +192,39 @@ std::list<Point *> GetNeighbors(Point *point)
                 }
             }
         }
-        else
+        else // 取邻居点时，如果是直行，当强方向点必须能走，如有左右两边不能，但是与当前方向斜着方向能走，那么斜着的方向也是邻居点
         {
-            if (xDirection == 0)
+            if (xDirection == 0) // 垂直方向行走
             {
-                // ����
+                // 下行，取下。如果是直线行走，那么这个方向爱那个必须能再次能走，不然，这个方向就是死路方向
                 if (IsWalkable(point->X, point->Y + yDirection))
                 {
                     points.push_back(new Point(point->X, point->Y + yDirection));
-                    // ǿ���ھ�
+
+                    // 下行，右边不行，右下角行，取右下角
                     if (!IsWalkable(point->X + 1, point->Y) && IsWalkable(point->X + 1, point->Y + yDirection))
                     {
                         points.push_back(new Point(point->X + 1, point->Y + yDirection));
                     }
+                    // 下行，左不行，左下角行，取左下角
                     if (!IsWalkable(point->X - 1, point->Y) && IsWalkable(point->X - 1, point->Y + yDirection))
                     {
                         points.push_back(new Point(point->X - 1, point->Y + yDirection));
                     }
                 }
             }
-            else
+            else // 水平方向行走
             {
-                // ����
+                // 右边行，取右边。如果是直线行走，那么这个方向必须能再次能走，不然，这个方向就是死路方向
                 if (IsWalkable(point->X + xDirection, point->Y))
                 {
                     points.push_back(new Point(point->X + xDirection, point->Y));
-                    // ǿ���ھ�
+                    // 右边行，下不行，右下行，取右下
                     if (!IsWalkable(point->X, point->Y + 1) && IsWalkable(point->X + xDirection, point->Y + 1))
                     {
                         points.push_back(new Point(point->X + xDirection, point->Y + 1));
                     }
+                    // 右边行，上边不行，右上行，取右上
                     if (!IsWalkable(point->X, point->Y - 1) && IsWalkable(point->X + xDirection, point->Y - 1))
                     {
                         points.push_back(new Point(point->X + xDirection, point->Y - 1));
@@ -261,7 +272,7 @@ Point *findPath(Point &startPoint, Point &endPoint)
     while (!openList.empty())
     {
         auto curPoint = getLeastFpoint(); // �ҵ�Fֵ��С�ĵ�
-        cout << "cx : " << curPoint->X << "     y : " << curPoint->Y << endl;
+        cout << "cx : " << curPoint->X << "     cy : " << curPoint->Y << endl;
         openList.remove(curPoint);     // �ӿ����б���ɾ��
         closeList.push_back(curPoint); // �ŵ��ر��б�
         // 1,�ҵ���ǰ��Χ�˸����п���ͨ���ĸ���
@@ -276,10 +287,10 @@ Point *findPath(Point &startPoint, Point &endPoint)
             }
             else
             {
-                xDirection = 1;
-                yDirection = 1;
+                xDirection = 0;
+                yDirection = 0;
             }
-
+            cout << "nx : " << target->X << "     ny : " << target->Y << endl;
             cout << "xDirection : " << xDirection << "     yDirection : " << yDirection << endl;
             // 搜索到跳点之后，记录所有的跳点在openlist,取openlist中带价值最小的点作为当前点
             Point *jumpPoint = Jump(target->X, target->Y, xDirection, yDirection, 10, endPoint);
@@ -359,7 +370,7 @@ int main(int argc, char *argv[])
     };
 
     Point start(1, 1);
-    Point end(6, 10);
+    Point end(1, 10);
 
     std::list<Point *> path = GetPath(start, end);
 
